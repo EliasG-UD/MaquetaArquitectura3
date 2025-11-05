@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Integra PYME Fácil — Maqueta</title>
+  <meta name="description" content="Maqueta estática (sin backend) para presentación en GitHub Pages." />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="#/">
+        <img class="logo" src="assets/logo.svg" alt="Logo Integra PYME Fácil" />
+        <span>Integra <b>PYME</b> Fácil</span>
+      </a>
+      <div class="version">Maqueta · v0.1</div>
+      <nav class="nav" id="nav">
+        <a href="#/dashboard" data-route>Dashboard</a>
+        <a href="#/clientes" data-route>Clientes</a>
+        <a href="#/proveedores" data-route>Proveedores</a>
+        <a href="#/productos" data-route>Productos</a>
+        <a href="#/inventario" data-route>Inventario</a>
+        <a href="#/ventas" data-route>Ventas & Facturas</a>
+        <a href="#/reportes" data-route>Reportes</a>
+        <a href="#/configuracion" data-route>Configuración</a>
+        <div class="divider"></div>
+        <a href="#/acerca" data-route>Acerca de</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="breadcrumbs" id="breadcrumbs">Inicio</div>
+          <h1 id="view-title">Dashboard</h1>
+        </div>
+        <div class="actions">
+          <input id="global-search" type="search" placeholder="Buscar (Ctrl+/)" />
+          <button id="fake-login" class="btn">Simular login</button>
+        </div>
+      </header>
+
+      <section id="view" class="view"></section>
+
+      <footer class="footer">
+        <small>© 2025 Integra PYME Fácil · Maqueta estática (sin base de datos)</small>
+      </footer>
+    </main>
+  </div>
+
+  <script src="assets/mock-data.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

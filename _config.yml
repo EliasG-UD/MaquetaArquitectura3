@@ -1,0 +1,10 @@
+title: Integra PYME Fácil — Proyecto 2 (Ing. de Requerimientos)
+description: Maqueta de presentación para GitHub Pages
+theme: jekyll-theme-cayman
+markdown: kramdown
+kramdown:
+  input: GFM
+  toc_levels: 2..3
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
