@@ -20,3 +20,13 @@
 4) Abre la URL `https://TU-USUARIO.github.io/integra-pyme-facil-mock/`.
 
 > Nota: Esta maqueta no guarda datos ni se conecta a ningún servicio. Todos los cambios se pierden al recargar.
+
+
+## Modo por actor (cliente)
+Ahora los datos se cargan desde archivos JSON por **actor** en `assets/data/`.
+- Actor **por defecto**: `Los Vengatuercas` (`vengatuercas`).
+- Ejemplo alternativo: `Ferretería El Tornillo` (`ferreteria-el-tornillo`).
+
+Puedes agregar más actores creando una carpeta `assets/data/<id-actor>/` con:
+`meta.json`, `clientes.json`, `proveedores.json`, `productos.json`, `inventario.json`, `ventas.json`.
+Y registrarlo en `assets/data/actors.json`.

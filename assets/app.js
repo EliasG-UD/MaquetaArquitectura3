@@ -69,12 +69,34 @@
     attachViewHandlers(state.route);
   }
 
-  /* ---------- Vistas ---------- */
+  
+  /* ---------- Data loader por actor (archivos JSON) ---------- */
+  const Data = {
+    actor: 'vengatuercas', // por defecto
+    db: { meta:{displayName:'Los Vengatuercas'}, clientes:[], proveedores:[], productos:[], inventario:[], ventas:[] },
+  };
+  async function loadActors(){
+    const res = await fetch('assets/data/actors.json'); return res.json();
+  }
+  async function loadActorData(actorId){
+    Data.actor = actorId || 'vengatuercas';
+    const base = `assets/data/${Data.actor}`;
+    const [meta, clientes, proveedores, productos, inventario, ventas] = await Promise.all([
+      fetch(`${base}/meta.json`).then(r=>r.json()),
+      fetch(`${base}/clientes.json`).then(r=>r.json()),
+      fetch(`${base}/proveedores.json`).then(r=>r.json()),
+      fetch(`${base}/productos.json`).then(r=>r.json()),
+      fetch(`${base}/inventario.json`).then(r=>r.json()),
+      fetch(`${base}/ventas.json`).then(r=>r.json()),
+    ]);
+    Data.db = { meta, clientes, proveedores, productos, inventario, ventas };
+  }
+/* ---------- Vistas ---------- */
 
   function viewDashboard() {
-    const totalClientes = MockDB.clientes.length;
-    const totalVentas = MockDB.ventas.length;
-    const totalIngresos = MockDB.ventas.reduce((s,v)=>s+v.total,0).toFixed(2);
+    const totalClientes = Data.db.clientes.length;
+    const totalVentas = Data.db.ventas.length;
+    const totalIngresos = Data.db.ventas.reduce((s,v)=>s+v.total,0).toFixed(2);
     return {
       title: 'Dashboard',
       html: `
@@ -96,7 +118,7 @@
             <table class="table">
               <thead><tr><th>ID</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Estado</th></tr></thead>
               <tbody>
-                ${MockDB.ventas.map(v => `
+                ${Data.db.ventas.map(v => `
                   <tr>
                     <td>#${v.id}</td>
                     <td>${getClienteNombre(v.clienteId)}</td>
@@ -113,7 +135,7 @@
   }
 
   function viewClientes() {
-    const data = MockDB.clientes.filter(c =>
+    const data = Data.db.clientes.filter(c =>
       !state.filter || c.nombre.toLowerCase().includes(state.filter) || (c.cedula||'').includes(state.filter)
     );
     return {
@@ -146,7 +168,7 @@
   }
 
   function viewProveedores() {
-    const data = MockDB.proveedores.filter(p =>
+    const data = Data.db.proveedores.filter(p =>
       !state.filter || p.nombre.toLowerCase().includes(state.filter)
     );
     return {
@@ -178,7 +200,7 @@
   }
 
   function viewProductos() {
-    const data = MockDB.productos.filter(p =>
+    const data = Data.db.productos.filter(p =>
       !state.filter || p.nombre.toLowerCase().includes(state.filter) || (p.sku||'').toLowerCase().includes(state.filter)
     );
     return {
@@ -211,7 +233,7 @@
   }
 
   function viewInventario() {
-    const low = MockDB.productos.filter(p => p.stock < 50);
+    const low = Data.db.productos.filter(p => p.stock < 50);
     return {
       title: 'Inventario',
       html: `
@@ -229,7 +251,7 @@
   }
 
   function viewVentas() {
-    const data = MockDB.ventas;
+    const data = Data.db.ventas;
     return {
       title: 'Ventas & Facturas',
       html: `
@@ -269,7 +291,7 @@
           <div class="card" style="grid-column: span 6">
             <h3>Productos más vendidos</h3>
             <ul>
-              ${MockDB.productos.slice(0,3).map(p => `<li>${p.nombre}</li>`).join('')}
+              ${Data.db.productos.slice(0,3).map(p => `<li>${p.nombre}</li>`).join('')}
             </ul>
           </div>
         </div>
@@ -330,21 +352,92 @@
     return { title: 'No encontrado', html: `<div class="card"><h3>404</h3><p>Ruta no encontrada.</p></div>` };
   }
 
-  /* ---------- Helpers y eventos por vista ---------- */
+  
+  /* ---------- Modal helpers ---------- */
+  function openModal(innerHtml){
+    const root = document.getElementById('modal-root');
+    root.innerHTML = `<div class="modal-overlay" data-close>
+      <div class="modal" role="dialog" aria-modal="true">
+        ${innerHtml}
+      </div>
+    </div>`;
+    root.addEventListener('click', (e)=>{
+      if (e.target.matches('[data-close]') || e.target.closest('[data-close-btn]')) closeModal();
+    });
+  }
+  function closeModal(){ document.getElementById('modal-root').innerHTML = ''; }
+
+  function openClienteForm(editing){
+    const title = editing ? 'Editar cliente' : 'Nuevo cliente';
+    const model = editing || { nombre:'', cedula:'', correo:'', telefono:'' };
+    openModal(`
+      <header>
+        <h3>${title}</h3>
+        <button class="btn secondary" data-close-btn>×</button>
+      </header>
+      <form class="form" id="form-cliente">
+        <div class="field">
+          <label>Nombre <span class="badge">obligatorio</span></label>
+          <input name="nombre" value="${model.nombre||''}" required placeholder="Ej. Panadería Doña Rosa" />
+          <div class="error" data-error-nombre></div>
+        </div>
+        <div class="field">
+          <label>Cédula jurídica/física</label>
+          <input name="cedula" value="${model.cedula||''}" placeholder="3-101-456789" />
+        </div>
+        <div class="field">
+          <label>Correo</label>
+          <input type="email" name="correo" value="${model.correo||''}" placeholder="ventas@empresa.cr" />
+          <div class="error" data-error-correo></div>
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input name="telefono" value="${model.telefono||''}" placeholder="2444-1122" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn secondary" type="button" data-close-btn>Cancelar</button>
+          <button class="btn" type="submit">${editing ? 'Guardar cambios' : 'Crear cliente'}</button>
+        </div>
+      </form>
+    `);
+
+    const form = document.getElementById('form-cliente');
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const fd = new FormData(form);
+      const nombre = (fd.get('nombre')||'').toString().trim();
+      const correo = (fd.get('correo')||'').toString().trim();
+      const cedula = (fd.get('cedula')||'').toString().trim();
+      const telefono = (fd.get('telefono')||'').toString().trim();
+
+      let ok = true;
+      const emailOk = !correo || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+      $('[data-error-nombre]').textContent = nombre ? '' : 'El nombre es obligatorio.';
+      $('[data-error-correo]').textContent = emailOk ? '' : 'Formato de correo inválido.';
+      ok = !!nombre && emailOk;
+      if (!ok) return;
+
+      if (editing){
+        editing.nombre = nombre; editing.correo = correo; editing.cedula = cedula; editing.telefono = telefono;
+      } else {
+        const id = Math.max(0, ...Data.db.clientes.map(c=>c.id)) + 1;
+        Data.db.clientes.push({ id, nombre, correo, cedula, telefono });
+      }
+      closeModal();
+      render();
+    });
+  }
+/* ---------- Helpers y eventos por vista ---------- */
 
   function getClienteNombre(id){
-    const c = MockDB.clientes.find(x => x.id === id);
+    const c = Data.db.clientes.find(x => x.id === id);
     return c ? c.nombre : 'Desconocido';
   }
 
   function attachViewHandlers(route){
     if (route === '/clientes') {
       $('#nuevo-cliente')?.addEventListener('click', () => {
-        const nombre = prompt('Nombre del cliente (demo):');
-        if (!nombre) return;
-        const id = Math.max(...MockDB.clientes.map(c=>c.id))+1;
-        MockDB.clientes.push({ id, nombre, cedula:'', correo:'', telefono:'' });
-        render();
+        openClienteForm();
       });
       $('#tabla-clientes')?.addEventListener('click', (e)=>{
         const btn = e.target.closest('button');
@@ -353,9 +446,8 @@
         const id = Number(tr.dataset.id);
         const act = btn.dataset.act;
         if (act === 'edit') {
-          const c = MockDB.clientes.find(x=>x.id===id);
-          const nuevo = prompt('Editar nombre (demo):', c.nombre);
-          if (nuevo) { c.nombre = nuevo; render(); }
+          const c = Data.db.clientes.find(x=>x.id===id);
+          openClienteForm(c);
         } else if (act === 'quote') {
           alert('Abriría flujo de cotización (maqueta).');
         }
@@ -366,8 +458,8 @@
       $('#nuevo-proveedor')?.addEventListener('click', () => {
         const nombre = prompt('Nombre del proveedor (demo):');
         if (!nombre) return;
-        const id = Math.max(...MockDB.proveedores.map(p=>p.id))+1;
-        MockDB.proveedores.push({ id, nombre, contacto:'', correo:'', telefono:'' });
+        const id = Math.max(...Data.db.proveedores.map(p=>p.id))+1;
+        Data.db.proveedores.push({ id, nombre, contacto:'', correo:'', telefono:'' });
         render();
       });
     }
@@ -376,8 +468,8 @@
       $('#nuevo-producto')?.addEventListener('click', () => {
         const nombre = prompt('Nombre del producto (demo):');
         if (!nombre) return;
-        const id = Math.max(...MockDB.productos.map(p=>p.id))+1;
-        MockDB.productos.push({ id, sku: 'NEW'+id, nombre, precio:0, unidad:'unidad', stock:0 });
+        const id = Math.max(...Data.db.productos.map(p=>p.id))+1;
+        Data.db.productos.push({ id, sku: 'NEW'+id, nombre, precio:0, unidad:'unidad', stock:0 });
         render();
       });
     }
@@ -390,6 +482,23 @@
     }
   }
 
-  // Primera carga
-  render();
+  
+  // Inicialización: cargar actores y actor por defecto
+  (async () => {
+    const actors = await loadActors();
+    const sel = document.getElementById('actor-select');
+    actors.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.id; opt.textContent = a.name;
+      if (a.id === Data.actor) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', async (e)=>{
+      await loadActorData(e.target.value);
+      render();
+    });
+    await loadActorData(Data.actor);
+    render();
+  })();
+
 })();

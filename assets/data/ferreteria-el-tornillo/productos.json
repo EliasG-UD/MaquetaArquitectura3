@@ -1,0 +1,26 @@
+[
+  {
+    "id": 101,
+    "sku": "PAN100",
+    "nombre": "Pan Baguette",
+    "precio": 900.0,
+    "unidad": "unidad",
+    "stock": 120
+  },
+  {
+    "id": 102,
+    "sku": "HAR200",
+    "nombre": "Harina 1kg",
+    "precio": 1250.5,
+    "unidad": "kg",
+    "stock": 80
+  },
+  {
+    "id": 103,
+    "sku": "LEV150",
+    "nombre": "Levadura 250g",
+    "precio": 850.0,
+    "unidad": "paq",
+    "stock": 45
+  }
+]

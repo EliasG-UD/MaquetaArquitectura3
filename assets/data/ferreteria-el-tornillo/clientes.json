@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "nombre": "Panadería Doña Rosa",
+    "cedula": "3-101-456789",
+    "correo": "ventas@donarosa.cr",
+    "telefono": "2444-1122"
+  },
+  {
+    "id": 2,
+    "nombre": "Ferretería El Tornillo",
+    "cedula": "3-102-123456",
+    "correo": "contacto@tornillo.cr",
+    "telefono": "2455-3344"
+  }
+]

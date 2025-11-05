@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "nombre": "Los Vengatuercas",
+    "cedula": "3-104-000001",
+    "correo": "ventas@vengatuercas.cr",
+    "telefono": "2400-0001"
+  },
+  {
+    "id": 2,
+    "nombre": "Papelería Tico",
+    "cedula": "3-103-654321",
+    "correo": "info@papetic.cr",
+    "telefono": "2255-9988"
+  }
+]

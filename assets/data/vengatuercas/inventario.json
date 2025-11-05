@@ -1,0 +1,14 @@
+[
+  {
+    "sku": "TORN-M8",
+    "stock": 500
+  },
+  {
+    "sku": "TUER-M8",
+    "stock": 900
+  },
+  {
+    "sku": "ARAN-M8",
+    "stock": 1200
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "id": 5001,
+    "clienteId": 1,
+    "fecha": "2025-11-01",
+    "total": 3500.0,
+    "estado": "Pagada"
+  },
+  {
+    "id": 5002,
+    "clienteId": 2,
+    "fecha": "2025-11-02",
+    "total": 12750.75,
+    "estado": "Pendiente"
+  }
+]

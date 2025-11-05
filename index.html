@@ -35,7 +35,7 @@
           <div class="breadcrumbs" id="breadcrumbs">Inicio</div>
           <h1 id="view-title">Dashboard</h1>
         </div>
-        <div class="actions">
+        <div class="actions"><select id="actor-select" title="Actor (cliente)"></select>
           <input id="global-search" type="search" placeholder="Buscar (Ctrl+/)" />
           <button id="fake-login" class="btn">Simular login</button>
         </div>
@@ -43,13 +43,14 @@
 
       <section id="view" class="view"></section>
 
+      <div id="modal-root"></div>
+
       <footer class="footer">
         <small>© 2025 Integra PYME Fácil · Maqueta estática (sin base de datos)</small>
       </footer>
     </main>
   </div>
 
-  <script src="assets/mock-data.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>
