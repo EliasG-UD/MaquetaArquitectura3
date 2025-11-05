@@ -427,6 +427,215 @@
       render();
     });
   }
+  function openProveedorForm(editing){
+    const title = editing ? 'Editar proveedor' : 'Nuevo proveedor';
+    const model = editing || { nombre:'', contacto:'', correo:'', telefono:'' };
+    openModal(`
+      <header>
+        <h3>${title}</h3>
+        <button class="btn secondary" data-close-btn>×</button>
+      </header>
+      <form class="form" id="form-proveedor">
+        <div class="field">
+          <label>Nombre <span class="badge">obligatorio</span></label>
+          <input name="nombre" value="${model.nombre||''}" required placeholder="Ej. Distribuidora El Sol" />
+          <div class="error" data-error-nombre></div>
+        </div>
+        <div class="field">
+          <label>Contacto</label>
+          <input name="contacto" value="${model.contacto||''}" placeholder="Persona contacto" />
+        </div>
+        <div class="field">
+          <label>Correo</label>
+          <input type="email" name="correo" value="${model.correo||''}" placeholder="proveedor@empresa.cr" />
+          <div class="error" data-error-correo></div>
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input name="telefono" value="${model.telefono||''}" placeholder="2444-1122" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn secondary" type="button" data-close-btn>Cancelar</button>
+          <button class="btn" type="submit">${editing ? 'Guardar cambios' : 'Crear proveedor'}</button>
+        </div>
+      </form>
+    `);
+    const form = document.getElementById('form-proveedor');
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const fd = new FormData(form);
+      const nombre = (fd.get('nombre')||'').toString().trim();
+      const contacto = (fd.get('contacto')||'').toString().trim();
+      const correo = (fd.get('correo')||'').toString().trim();
+      const telefono = (fd.get('telefono')||'').toString().trim();
+      const emailOk = !correo || /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(correo);
+      document.querySelector('[data-error-nombre]').textContent = nombre ? '' : 'El nombre es obligatorio.';
+      document.querySelector('[data-error-correo]').textContent = emailOk ? '' : 'Formato de correo inválido.';
+      if (!nombre || !emailOk) return;
+      if (editing){
+        editing.nombre = nombre; editing.contacto = contacto; editing.correo = correo; editing.telefono = telefono;
+      } else {
+        const id = Math.max(0, ...Data.db.proveedores.map(p=>p.id||0)) + 1;
+        Data.db.proveedores.push({ id, nombre, contacto, correo, telefono });
+      }
+      closeModal(); render();
+    });
+  }
+
+  function openProductoForm(editing){
+    const title = editing ? 'Editar producto' : 'Nuevo producto';
+    const model = editing || { sku:'', nombre:'', descripcion:'', proveedor:'', precio:0, unidad:'unidad', stock:0 };
+    const proveedoresOpts = Data.db.proveedores.map(p=>`<option value="${p.nombre}" ${p.nombre===model.proveedor?'selected':''}>${p.nombre}</option>`).join('');
+    openModal(`
+      <header>
+        <h3>${title}</h3>
+        <button class="btn secondary" data-close-btn>×</button>
+      </header>
+      <form class="form" id="form-producto">
+        <div class="field">
+          <label>SKU <span class="badge">obligatorio</span></label>
+          <input name="sku" value="${model.sku||''}" required placeholder="ABC-001" />
+          <div class="error" data-error-sku></div>
+        </div>
+        <div class="field">
+          <label>Nombre <span class="badge">obligatorio</span></label>
+          <input name="nombre" value="${model.nombre||''}" required placeholder="Tornillo 1/4&quot;" />
+          <div class="error" data-error-nombre></div>
+        </div>
+        <div class="field">
+          <label>Proveedor</label>
+          <select name="proveedor"><option value="">—</option>${proveedoresOpts}</select>
+        </div>
+        <div class="field">
+          <label>Precio (CRC)</label>
+          <input name="precio" type="number" min="0" step="0.01" value="${Number(model.precio)||0}" />
+        </div>
+        <div class="field">
+          <label>Unidad</label>
+          <input name="unidad" value="${model.unidad||'unidad'}" />
+        </div>
+        <div class="field">
+          <label>Stock</label>
+          <input name="stock" type="number" min="0" step="1" value="${Number(model.stock)||0}" />
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Descripción</label>
+          <textarea name="descripcion" rows="2">${model.descripcion||''}</textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn secondary" type="button" data-close-btn>Cancelar</button>
+          <button class="btn" type="submit">${editing ? 'Guardar cambios' : 'Crear producto'}</button>
+        </div>
+      </form>
+    `);
+    const form = document.getElementById('form-producto');
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const fd = new FormData(form);
+      const sku = (fd.get('sku')||'').toString().trim();
+      const nombre = (fd.get('nombre')||'').toString().trim();
+      const proveedor = (fd.get('proveedor')||'').toString().trim();
+      const precio = Number(fd.get('precio')||0);
+      const unidad = (fd.get('unidad')||'unidad').toString().trim() || 'unidad';
+      const stock = Number(fd.get('stock')||0);
+      document.querySelector('[data-error-sku]').textContent = sku ? '' : 'El SKU es obligatorio.';
+      document.querySelector('[data-error-nombre]').textContent = nombre ? '' : 'El nombre es obligatorio.';
+      if (!sku || !nombre) return;
+      if (editing){
+        editing.sku = sku; editing.nombre = nombre; editing.proveedor = proveedor;
+        editing.precio = isNaN(precio)?0:precio; editing.unidad = unidad; editing.stock = isNaN(stock)?0:stock;
+      } else {
+        const id = Math.max(0, ...Data.db.productos.map(p=>p.id||0)) + 1;
+        Data.db.productos.push({ id, sku, nombre, proveedor, precio:isNaN(precio)?0:precio, unidad, stock:isNaN(stock)?0:stock });
+      }
+      closeModal(); render();
+    });
+  }
+
+  function openVentaForm(){
+    const clientesOpts = Data.db.clientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+    const productosOpts = Data.db.productos.map(p=>`<option value="${p.id}">${p.sku} — ${p.nombre} (₡${p.precio.toFixed(2)})</option>`).join('');
+    let items = [];
+    function calcTotal(){ return items.reduce((s,it)=>s + it.cantidad * it.precio, 0); }
+    function renderItems(){
+      const tbody = document.getElementById('venta-items-body');
+      tbody.innerHTML = items.map((it,idx)=>`
+        <tr>
+          <td>${it.sku}</td><td>${it.nombre}</td><td>${it.cantidad}</td>
+          <td>₡ ${it.precio.toFixed(2)}</td><td>₡ ${(it.cantidad*it.precio).toFixed(2)}</td>
+          <td><button class="btn warn" data-rm="${idx}" type="button">Quitar</button></td>
+        </tr>`).join('');
+      document.getElementById('venta-total').textContent = '₡ ' + calcTotal().toFixed(2);
+    }
+    openModal(`
+      <header>
+        <h3>Nueva venta</h3>
+        <button class="btn secondary" data-close-btn>×</button>
+      </header>
+      <form class="form" id="form-venta">
+        <div class="field">
+          <label>Cliente</label>
+          <select name="clienteId" required><option value="">Seleccionar…</option>${clientesOpts}</select>
+        </div>
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" name="fecha" required />
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <fieldset>
+            <legend>Ítems</legend>
+            <div class="row" style="gap:.5rem; align-items: end;">
+              <div class="field">
+                <label>Producto</label>
+                <select id="venta-prod" ><option value="">—</option>${productosOpts}</select>
+              </div>
+              <div class="field">
+                <label>Cantidad</label>
+                <input id="venta-cant" type="number" min="1" step="1" value="1" />
+              </div>
+              <button class="btn" type="button" id="venta-add">Agregar ítem</button>
+            </div>
+            <table class="table" style="margin-top:.5rem">
+              <thead><tr><th>SKU</th><th>Producto</th><th>Cant.</th><th>P. Unit</th><th>Subtotal</th><th></th></tr></thead>
+              <tbody id="venta-items-body"></tbody>
+              <tfoot><tr><td colspan="4" style="text-align:right">Total</td><td id="venta-total">₡ 0.00</td><td></td></tr></tfoot>
+            </table>
+          </fieldset>
+        </div>
+        <div class="modal-actions">
+          <button class="btn secondary" type="button" data-close-btn>Cancelar</button>
+          <button class="btn" type="submit">Registrar venta</button>
+        </div>
+      </form>
+    `);
+    document.getElementById('venta-add').addEventListener('click', ()=>{
+      const sel = document.getElementById('venta-prod');
+      const qty = Number(document.getElementById('venta-cant').value||1);
+      const prod = Data.db.productos.find(p=>String(p.id)===String(sel.value));
+      if (!prod){ alert('Seleccione un producto.'); return; }
+      if (!(qty>=1)){ alert('Cantidad inválida.'); return; }
+      items.push({ productoId: prod.id, sku: prod.sku, nombre: prod.nombre, precio: Number(prod.precio)||0, cantidad: qty });
+      renderItems();
+    });
+    document.getElementById('venta-items-body').addEventListener('click', (e)=>{
+      const btn = e.target.closest('button[data-rm]'); if (!btn) return;
+      const idx = Number(btn.dataset.rm); items.splice(idx,1); renderItems();
+    });
+    renderItems();
+    const form = document.getElementById('form-venta');
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      if (items.length===0){ alert('Agregue al menos un ítem.'); return; }
+      const fd = new FormData(form);
+      const clienteId = Number(fd.get('clienteId'));
+      const fecha = (fd.get('fecha')||'').toString();
+      const id = Math.max(0, ...Data.db.ventas.map(v=>v.id||0)) + 1;
+      const total = calcTotal();
+      Data.db.ventas.push({ id, clienteId, fecha, total, estado: 'Emitida', items });
+      closeModal(); render();
+    });
+  }
+
 /* ---------- Helpers y eventos por vista ---------- */
 
   function getClienteNombre(id){
@@ -456,21 +665,28 @@
 
     if (route === '/proveedores') {
       $('#nuevo-proveedor')?.addEventListener('click', () => {
-        const nombre = prompt('Nombre del proveedor (demo):');
-        if (!nombre) return;
-        const id = Math.max(...Data.db.proveedores.map(p=>p.id))+1;
-        Data.db.proveedores.push({ id, nombre, contacto:'', correo:'', telefono:'' });
-        render();
+        openProveedorForm();
+      });
+      // permitir editar desde la tabla
+      document.querySelector('table.table')?.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button[data-act="edit"]');
+        if (!btn) return;
+        const tr = e.target.closest('tr');
+        const id = Number(tr.dataset.id);
+        const p = Data.db.proveedores.find(x=>x.id===id);
+        if (p) openProveedorForm(p);
       });
     }
 
     if (route === '/productos') {
       $('#nuevo-producto')?.addEventListener('click', () => {
-        const nombre = prompt('Nombre del producto (demo):');
-        if (!nombre) return;
-        const id = Math.max(...Data.db.productos.map(p=>p.id))+1;
-        Data.db.productos.push({ id, sku: 'NEW'+id, nombre, precio:0, unidad:'unidad', stock:0 });
-        render();
+        openProductoForm();
+      });
+    }
+
+    if (route === '/ventas') {
+      $('#nueva-venta')?.addEventListener('click', () => {
+        openVentaForm();
       });
     }
 
